@@ -5,13 +5,15 @@ const environment = require("dotenv");
 environment.config();
 const config = require("./config/config");
 const BookRoutes = require("./routes/books.routes");
-const loggerMiddleware = require("./middlewares/logger.middleware")
+const UserRoutes = require("./routes/user.routes");
+const loggerMiddleware = require("./middlewares/logger.middleware");
 const app = express();
 
 // middleware
 app.use(express.json());
-app.use(loggerMiddleware)
+app.use(loggerMiddleware);
 app.use("/api", BookRoutes); //router
+app.use("/api", UserRoutes); //router
 
 connectDB();
 const port = config.port;
