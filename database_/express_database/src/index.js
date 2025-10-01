@@ -2,6 +2,7 @@ const express = require("express");
 
 const connectDB = require("./config/database");
 const environment = require("dotenv");
+const cookeiParser = require("cookie-parser");
 environment.config();
 const config = require("./config/config");
 const BookRoutes = require("./routes/books.routes");
@@ -11,10 +12,11 @@ const app = express();
 
 // middleware
 app.use(express.json());
+app.use(cookeiParser());
 app.use(loggerMiddleware);
 app.use("/api", BookRoutes); //router
 app.use("/api", UserRoutes); //router
-
+// mytoken = response.cookie("refresh_token")
 connectDB();
 const port = config.port;
 

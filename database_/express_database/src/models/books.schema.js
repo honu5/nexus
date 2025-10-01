@@ -7,6 +7,8 @@ const booksSchema = new mongoose.Schema({
   // create - _id
   title: { type: String, required: true },
   author: { type: String, required: true },
+  // one to many
+  userId : {type : mongoose.Schema.Types.ObjectId, ref: "User", required : true}
 });
 
 module.exports = mongoose.model("Books", booksSchema);

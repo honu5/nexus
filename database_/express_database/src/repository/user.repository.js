@@ -16,6 +16,10 @@ class UserRepository {
     return await User.find();
   }
 
+  async updateUser(id, updatedData) {
+    return await User.findByIdAndUpdate(id, updatedData, { new: true }); //return the updated document
+  }
+
   //   update
   // delete
 }

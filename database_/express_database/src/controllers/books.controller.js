@@ -10,32 +10,37 @@ class BookController {
       // url params
       // request body
 
-      //we validate the request
-      const book = await BooksService.createBook(request.body);
+      //todo we validate the request
+      const book = await BooksService.createBook(request.body, request.user.id);
       response.status(201).json(book);
     } catch (error) {
-        response.status(400).json({message : error.message})
+      response.status(400).json({ message: error.message });
     }
   }
 
   async getBooks(request, response) {
-        try {
-            const allBooks = await BooksService.getBooks()
-            response.status(200).json(allBooks);
-        } catch (error) {
-            response.status(400).json({message : error.message})
-        }
+    try {
+      // somedomain/dnsfd?fndjs
+      const { page = 1, limit = 10 } = request.query;
+      const allBooks = await BooksService.getBooks(
+        parseInt(page),
+        parseInt(limit)
+      );
+      response.status(200).json(allBooks);
+    } catch (error) {
+      response.status(400).json({ message: error.message });
+    }
   }
 
   async getBooksById(request, response) {
-        try {
-            const specificBook = await BooksService.getBooksbyId(request.params.id)
-            response.status(200).json(specificBook);
-        } catch (error) {
-            response.status(400).json({message : error.message})
-        }
+    try {
+      const specificBook = await BooksService.getBooksbyId(request.params.id);
+      response.status(200).json(specificBook);
+    } catch (error) {
+      response.status(400).json({ message: error.message });
+    }
   }
-//   
+  //
 }
 
 module.exports = new BookController();

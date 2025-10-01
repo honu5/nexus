@@ -7,6 +7,7 @@ const generateAccessToken = (user) => {
   // payload - actual data
   // private key
   // expire time
+  console.log("User for token", user, config.privateKey);
   return jwt.sign(
     {
       id: user._id,
@@ -34,7 +35,9 @@ const generateRefreshToken = (user) => {
 
 const verifyAccesToken = (token) => {
   // decode the token
-  return jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+  console.log("Verifying token", token);
+
+  return jwt.verify(token, config.privateKey);
 };
 // verify RefreshToken
 const verifyRefreshToken = (token) => {
