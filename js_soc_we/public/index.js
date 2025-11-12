@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   sendButton.addEventListener("click", () => {
     let message = input.value;
+    // send it to the server
     socket.emit("new_message", { message: message });
     input.value = "";
   });

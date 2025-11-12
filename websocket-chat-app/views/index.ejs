@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Chat - Educational Project</title>
+    <style>
+      /* ================================================================= */
+      /* CSS RESET & BASE STYLES */
+      /* ================================================================= */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        display: flex;
+        height: 70vh;
+        overflow: hidden;
+      }
+
+      /* ================================================================= */
+      /* JOIN FORM SECTION - Initial authentication */
+      /* ================================================================= */
+      #join-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        min-width: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      #join-form h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      #join-form p {
+        font-size: 1.1em;
+        margin-bottom: 30px;
+        opacity: 0.9;
+      }
+
+      .form-group {
+        width: 100%;
+        max-width: 400px;
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 1em;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-size: 1em;
+        transition: all 0.3s ease;
+      }
+
+      input[type="text"]::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      input[type="text"]:focus {
+        outline: none;
+        border-color: white;
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+
+      button {
+        padding: 12px 40px;
+        background: white;
+        color: #667eea;
+        border: none;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      /* ================================================================= */
+      /* CHAT INTERFACE SECTION */
+      /* ================================================================= */
+      #chat-container {
+        display: none;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header with status and room info */
+      .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-bottom: 3px solid #764ba2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .header-info {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+      }
+
+      .header-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .header-label {
+        font-size: 0.85em;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .header-value {
+        font-size: 1.1em;
+        font-weight: 600;
+      }
+
+      /* Status indicator with real-time connection status */
+      #status {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+      }
+
+      #status.connected {
+        background: rgba(0, 255, 0, 0.2);
+        color: #00ff00;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+      }
+
+      #status.disconnected {
+        background: rgba(255, 0, 0, 0.2);
+        color: #ff0000;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+      }
+
+      /* ================================================================= */
+      /* MAIN CHAT AREA - Left side with messages */
+      /* ================================================================= */
+      .chat-main {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .messages-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid #e0e0e0;
+      }
+
+      /* Messages container - scrollable area */
+      #messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        background: #f5f5f5;
+      }
+
+      /* Individual message styling */
+      .message {
+        padding: 12px 16px;
+        border-radius: 8px;
+        max-width: 80%;
+        word-wrap: break-word;
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .message-user {
+        background: white;
+        border-left: 4px solid #667eea;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .message-system {
+        background: #e0e0e0;
+        color: #666;
+        align-self: center;
+        font-size: 0.9em;
+        font-style: italic;
+        max-width: 100%;
+        text-align: center;
+      }
+
+      .message-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        gap: 10px;
+      }
+
+      .username {
+        font-weight: 700;
+        color: #667eea;
+      }
+
+      .timestamp {
+        font-size: 0.8em;
+        color: #999;
+      }
+
+      .message-content {
+        color: #333;
+        line-height: 1.4;
+      }
+
+      /* Typing indicator */
+      #typing-indicator {
+        padding: 10px 20px;
+        font-size: 0.9em;
+        color: #999;
+        font-style: italic;
+        min-height: 20px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      /* ================================================================= */
+      /* MESSAGE INPUT AREA - Send message section */
+      /* ================================================================= */
+      .message-input-area {
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        gap: 10px;
+      }
+
+      #message-input {
+        flex: 1;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1em;
+        font-family: inherit;
+        resize: none;
+        transition: all 0.3s ease;
+      }
+
+      #message-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 8px rgba(102, 126, 234, 0.3);
+      }
+
+      #send-btn {
+        padding: 10px 25px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 80px;
+      }
+
+      #send-btn:hover {
+        background: #764ba2;
+        transform: translateY(-2px);
+      }
+
+      #send-btn:active {
+        transform: translateY(0);
+      }
+
+      /* ================================================================= */
+      /* SIDEBAR - Users list */
+      /* ================================================================= */
+      .sidebar {
+        width: 250px;
+        background: #f9f9f9;
+        padding: 20px;
+        overflow-y: auto;
+        border-left: 1px solid #e0e0e0;
+      }
+
+      .sidebar h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 1em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      #users-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .user-item {
+        padding: 10px;
+        background: white;
+        border-radius: 6px;
+        border-left: 3px solid #667eea;
+        font-size: 0.95em;
+        color: #333;
+        transition: all 0.3s ease;
+      }
+
+      .user-item:hover {
+        background: #f0f0f0;
+        transform: translateX(5px);
+      }
+
+      /* ================================================================= */
+      /* RESPONSIVE DESIGN */
+      /* ================================================================= */
+      @media (max-width: 768px) {
+        .container {
+          flex-direction: column;
+          height: auto;
+          max-height: 80vh;
+        }
+
+        .sidebar {
+          display: none; /* Hide sidebar on mobile */
+        }
+
+        #messages {
+          max-height: 300px;
+        }
+
+        .message {
+          max-width: 95%;
+        }
+
+        .chat-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .header-info {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        #join-form {
+          padding: 20px;
+        }
+      }
+
+      /* ================================================================= */
+      /* SCROLLBAR STYLING */
+      /* ================================================================= */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ============================================================= -->
+      <!-- JOIN FORM - Authentication & Room Selection -->
+      <!-- ============================================================= -->
+      <form id="join-form">
+        <h1>💬 WebSocket Chat</h1>
+        <p>Educational Project - Learn Real-time Communication</p>
+
+        <div class="form-group">
+          <label for="username-input">Your Username</label>
+          <input
+            type="text"
+            id="username-input"
+            placeholder="Enter your username"
+            maxlength="20"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="room-input">Room Name</label>
+          <input
+            type="text"
+            id="room-input"
+            placeholder="e.g., general, tech, gaming"
+            value="<%= room || 'general' %>"
+            maxlength="20"
+          />
+        </div>
+
+        <button type="submit" id="join-btn">Join Room</button>
+      </form>
+
+      <!-- ============================================================= -->
+      <!-- CHAT INTERFACE - Main messaging area -->
+      <!-- ============================================================= -->
+      <div id="chat-container">
+        <!-- Header: Connection status and room info -->
+        <div class="chat-header">
+          <div class="header-info">
+            <div class="header-item">
+              <span class="header-label">Status</span>
+              <span id="status">🔴 Disconnected</span>
+            </div>
+            <div class="header-item">
+              <span class="header-label" id="room-name">Room: general</span>
+            </div>
+            <div class="header-item">
+              <span class="header-label" id="user-count">Users: 0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main chat area -->
+        <div class="chat-main">
+          <!-- Messages area -->
+          <div class="messages-section">
+            <div id="messages">
+              <!-- Server-side rendering: Display message history -->
+              <% if (messageHistory && messageHistory.length > 0) { %> <%
+              messageHistory.forEach(msg => { %>
+              <div class="message message-<%= msg.type %>">
+                <div class="message-header">
+                  <span class="username"><%= msg.username %></span>
+                  <span class="timestamp">
+                    <%= new Date(msg.timestamp).toLocaleTimeString() %>
+                  </span>
+                </div>
+                <div class="message-content"><%= msg.content %></div>
+              </div>
+              <% }); %> <% } %>
+            </div>
+
+            <!-- Typing indicator -->
+            <div id="typing-indicator"></div>
+
+            <!-- Message input area -->
+            <div class="message-input-area">
+              <input
+                type="text"
+                id="message-input"
+                placeholder="Type your message... (Press Enter to send)"
+                disabled
+              />
+              <button type="button" id="send-btn" disabled>Send</button>
+            </div>
+          </div>
+
+          <!-- Users sidebar -->
+          <div class="sidebar">
+            <h3>Users Online</h3>
+            <div id="users-list">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- CLIENT-SIDE SCRIPTS -->
+    <!-- ================================================================ -->
+
+    <!-- Socket.IO client library -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Your client code -->
+    <script src="/client.js"></script>
+
+    <!-- ================================================================ -->
+    <!-- EDUCATIONAL COMMENTS IN CONSOLE -->
+    <!-- ================================================================ -->
+    <script>
+      console.log(`
+╔════════════════════════════════════════════════════════════════════════╗
+║                   WEBSOCKET EDUCATIONAL PROJECT                        ║
+║                                                                        ║
+║  This chat application demonstrates:                                  ║
+║  1. WebSocket handshake and persistent connections                   ║
+║  2. Socket.IO event emitting and listening                           ║
+║  3. Server-Side Rendering (SSR) with Express & EJS                   ║
+║  4. Real-time bidirectional communication                            ║
+║  5. Connection lifecycle management                                  ║
+║  6. Message acknowledgment patterns                                  ║
+║  7. Typing indicators for UX                                         ║
+║  8. Error handling and reconnection logic                            ║
+║                                                                        ║
+║  🔍 Open DevTools Console to see detailed logging                     ║
+║  📚 Study the console messages to understand WebSocket flow           ║
+║  💡 Each event logs its trigger and payload                          ║
+╚════════════════════════════════════════════════════════════════════════╝
+        `);
+
+      console.info("📖 Key Concepts:");
+      console.info(
+        "1. Connection Handshake - HTTP Upgrade Request → 101 Response"
+      );
+      console.info("2. Socket.IO Rooms - Logical grouping of connections");
+      console.info("3. Emit/On Pattern - Bidirectional event communication");
+      console.info("4. Acknowledgments - Confirm message delivery");
+      console.info("5. Fallbacks - WebSocket → HTTP Polling");
+    </script>
+  </body>
+</html>

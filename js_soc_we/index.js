@@ -13,6 +13,7 @@ const io = new Server(server);
 // });
 //   we can also use express.static
 app.use("/", express.static(__dirname + "/public"));
+// app.get
 
 io.on("connection", (socket) => {
   console.log("a user connected", socket.id);
